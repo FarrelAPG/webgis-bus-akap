@@ -10,15 +10,19 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
   :root{
-    --bg: #12151B;
-    --panel: #1A1F28;
-    --panel-line: #2A313D;
-    --text: #E9E7DE;
-    --text-dim: #8B93A1;
-    --amber: #F2A93B;
-    --amber-dim: #8A6423;
-    --green: #6FA287;
-    --rust: #C1502E;
+    --bg: #0F1420;
+    --panel: #171D2C;
+    --panel-line: #2C3548;
+    --text: #EDEFF7;
+    --text-dim: #8D96B3;
+    --accent: #7C9BFF;
+    --accent-dim: #35406B;
+    --teal: #4FD1C5;
+    --amber: #FFB454;
+    --green: #5FD98A;
+    --yellow: #F2D34B;
+    --orange: #FF9142;
+    --rust: #FF5C7A;
     --font-display: 'Space Grotesk', sans-serif;
     --font-mono: 'IBM Plex Mono', monospace;
     --font-body: 'Inter', sans-serif;
@@ -27,7 +31,7 @@
   html,body{height:100%; background:var(--bg); color:var(--text); font-family:var(--font-body); overflow:hidden;}
 
   #app{position:relative; height:100vh; width:100vw;}
-  #map{position:absolute; inset:0; background:#0d1014;}
+  #map{position:absolute; inset:0; background:#0a0e17;}
 
   .leaflet-container{background:#0d1014 !important; font-family:var(--font-body);}
   .leaflet-tile-pane{ filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.95) saturate(0.6); }
@@ -120,6 +124,35 @@
   .trip-detail .row:last-child{ border-bottom:none; }
   .trip-detail .row span:last-child{ color:var(--text); font-family:var(--font-mono); font-weight:500; }
 
+  /* Day filter buttons (Senin-Minggu) */
+  .day-filters{ display:grid; grid-template-columns:repeat(7, 1fr); gap:5px; margin-bottom:10px; }
+  .day-btn{
+    background:#151920; border:1px solid var(--panel-line); color:var(--text-dim);
+    padding:8px 2px; border-radius:3px; cursor:pointer; font-family:var(--font-mono);
+    font-size:11px; text-align:center; transition:border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .day-btn:hover{ color:var(--text); }
+  .day-btn.active{ color:var(--bg); background:var(--amber); border-color:var(--amber); font-weight:600; }
+  .day-btn.hidden-day{ opacity:0.35; text-decoration:line-through; }
+  .day-detail{
+    background:#151920; border:1px solid var(--panel-line); border-radius:3px; padding:14px;
+    font-size:12.5px; color:var(--text-dim); line-height:1.6;
+  }
+  .day-detail h3{ font-family:var(--font-display); font-size:15px; margin-bottom:8px; color:var(--text); }
+  .day-detail .lvl-tag{
+    display:inline-block; font-family:var(--font-mono); font-size:10px; letter-spacing:0.05em;
+    text-transform:uppercase; padding:2px 8px; border-radius:10px; margin-bottom:8px;
+  }
+  .day-detail .lvl-tag.tinggi{ background:rgba(193,80,46,0.2); color:var(--rust); }
+  .day-detail .lvl-tag.sedang{ background:rgba(242,169,59,0.2); color:var(--amber); }
+  .day-detail .lvl-tag.rendah{ background:rgba(111,162,135,0.2); color:var(--green); }
+  .day-hide-row{ display:flex; justify-content:flex-end; margin-top:8px; }
+  .day-hide-row button{
+    background:none; border:none; color:var(--text-dim); font-size:11px; cursor:pointer;
+    text-decoration:underline; font-family:var(--font-body); padding:2px;
+  }
+  .day-hide-row button:hover{ color:var(--text); }
+
   .idle-note{
     font-size:11.5px; color:var(--text-dim); line-height:1.6; margin-top:8px;
     padding-top:8px; border-top:1px dashed var(--panel-line);
@@ -209,10 +242,12 @@
       <div id="trip-details"></div>
 
       <div class="section-label">Legenda</div>
-      <div class="legend-row"><span class="legend-line" style="background:#F2A93B"></span> Trip 1 — Siang (13:09)</div>
-      <div class="legend-row"><span class="legend-line" style="background:#6C9BD1"></span> Trip 2 — Malam (20:06)</div>
       <div class="legend-row"><span class="legend-dot" style="background:#6FA287"></span> Titik keberangkatan</div>
       <div class="legend-row"><span class="legend-dot" style="background:#C1502E"></span> Titik tiba</div>
+      <div class="legend-row"><span class="legend-line" style="background:#6FA287"></span> Rute — potensi macet rendah (hari terpilih)</div>
+      <div class="legend-row"><span class="legend-line" style="background:#F2A93B"></span> Rute — potensi macet sedang (hari terpilih)</div>
+      <div class="legend-row"><span class="legend-line" style="background:#C1502E"></span> Rute — potensi macet tinggi (hari terpilih)</div>
+      <div class="legend-row" style="font-size:11px; color:var(--text-dim); margin-top:2px;">Warna rute mengikuti tingkat potensi macet pada hari yang dipilih di bawah — gunakan tombol "Pilih Keberangkatan" untuk membandingkan trip siang/malam.</div>
 
       <div class="section-label">Keterbatasan Data</div>
       <div class="caveat">
@@ -221,9 +256,10 @@
 
       <div class="section-label">Catatan Kemacetan per Hari</div>
       <div class="caveat" style="margin-bottom:10px;">
-        Data GPS hanya merekam 1 hari observasi (2 trip). Catatan di bawah adalah perkiraan kualitatif potensi macet untuk hari-hari lain dalam seminggu, berdasarkan pola umum lalu lintas di jalur ini — bukan hasil pengukuran langsung.
+        Data GPS hanya merekam 1 hari observasi (2 trip). Catatan di bawah adalah perkiraan kualitatif potensi macet per hari, berdasarkan pola umum lalu lintas di jalur ini — bukan hasil pengukuran langsung.
       </div>
-      <div id="catatan-macet"></div>
+      <div class="day-filters" id="day-filters"></div>
+      <div class="day-detail" id="day-detail"></div>
 
     </div>
     <footer class="credit">CAAS GIS · Week 5 · Tugas Routing WebGIS</footer>
@@ -402,20 +438,74 @@ function buildTripDetails(){
 }
 
 const CATATAN_MACET_HARIAN = [
-  { hari: 'Senin–Jumat (siang)', desc: 'Berpotensi macet di sekitar Pasar/Simpang Kota Serang dan area Tangerang Kota — jam berangkat kerja/sekolah membuat volume kendaraan lokal padat.' },
-  { hari: 'Senin–Jumat (malam)', desc: 'Relatif lebih lancar dibanding trip siang, namun tetap berpotensi tersendat di Simpang Balaraja saat pergantian shift pabrik.' },
-  { hari: 'Sabtu', desc: 'Potensi macet menurun di jalur industri (Balaraja, Tangerang), tapi area pasar Serang tetap ramai karena aktivitas akhir pekan.' },
-  { hari: 'Minggu', desc: 'Umumnya paling lancar sepanjang rute karena minim aktivitas kerja/industri; risiko utama hanya di simpang keluar Cilegon saat jam wisata.' }
+  { hari: 'Senin', singkat: 'Sen', level: 'sedang', desc: 'Hari observasi data GPS asli. Berpotensi macet di sekitar Pasar/Simpang Kota Serang dan area Tangerang Kota saat trip siang — jam berangkat kerja/sekolah membuat volume kendaraan lokal padat. Trip malam relatif lebih lancar.' },
+  { hari: 'Selasa', singkat: 'Sel', level: 'sedang', desc: 'Pola serupa hari Senin — jam sibuk pagi hingga siang di area Serang dan Tangerang Kota masih jadi titik rawan utama.' },
+  { hari: 'Rabu', singkat: 'Rab', level: 'sedang', desc: 'Volume lalu lintas cenderung stabil di pertengahan minggu, potensi macet sedang di Simpang Balaraja akibat aktivitas kawasan industri.' },
+  { hari: 'Kamis', singkat: 'Kam', level: 'tinggi', desc: 'Mendekati akhir pekan kerja, volume kendaraan logistik dan penumpang meningkat — risiko macet lebih tinggi di area Tangerang Kota dan menjelang Jakarta.' },
+  { hari: 'Jumat', singkat: 'Jum', level: 'tinggi', desc: 'Hari tersibuk dalam seminggu untuk jalur ini — kombinasi jam pulang kerja dan mobilitas menuju akhir pekan membuat hampir seluruh titik rawan berpotensi padat, terutama sore hingga malam.' },
+  { hari: 'Sabtu', singkat: 'Sab', level: 'rendah', desc: 'Potensi macet menurun di jalur industri (Balaraja, Tangerang Kota), namun area pasar Serang tetap ramai karena aktivitas belanja akhir pekan.' },
+  { hari: 'Minggu', singkat: 'Min', level: 'rendah', desc: 'Umumnya hari paling lancar sepanjang rute karena minim aktivitas kerja/industri; risiko utama hanya di simpang keluar Cilegon saat jam wisata sore.' }
 ];
 
+const LEVEL_ROUTE_COLOR = { tinggi: '#C1502E', sedang: '#F2A93B', rendah: '#6FA287' };
+let activeDay = 'Senin';
+let hiddenDays = new Set();
+
 function buildCatatanMacet(){
-  const wrap = document.getElementById('catatan-macet');
-  wrap.innerHTML = CATATAN_MACET_HARIAN.map(c => `
-    <div class="macet-item" style="flex-direction:column; align-items:flex-start; gap:3px;">
-      <b style="color:var(--text)">${c.hari}</b>
-      <span class="desc" style="color:var(--text-dim)">${c.desc}</span>
-    </div>
+  const filterWrap = document.getElementById('day-filters');
+  filterWrap.innerHTML = CATATAN_MACET_HARIAN.map(c => `
+    <button class="day-btn" data-hari="${c.hari}">${c.singkat}</button>
   `).join('');
+
+  filterWrap.querySelectorAll('.day-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const hari = btn.dataset.hari;
+      if(hiddenDays.has(hari)) return; // hari disembunyikan, tidak bisa dipilih
+      activeDay = hari;
+      renderDayState();
+    });
+  });
+
+  renderDayState();
+}
+
+function renderDayState(){
+  const filterWrap = document.getElementById('day-filters');
+  filterWrap.querySelectorAll('.day-btn').forEach(btn=>{
+    const hari = btn.dataset.hari;
+    btn.classList.toggle('active', hari === activeDay && !hiddenDays.has(hari));
+    btn.classList.toggle('hidden-day', hiddenDays.has(hari));
+  });
+
+  const data = CATATAN_MACET_HARIAN.find(c => c.hari === activeDay);
+  const detailWrap = document.getElementById('day-detail');
+  if(!data || hiddenDays.has(activeDay)){
+    detailWrap.innerHTML = `<div style="color:var(--text-dim);">Pilih salah satu hari untuk melihat catatan potensi macet.</div>`;
+  } else {
+    detailWrap.innerHTML = `
+      <h3>${data.hari}</h3>
+      <span class="lvl-tag ${data.level}">Potensi macet: ${data.level}</span>
+      <div>${data.desc}</div>
+      <div class="day-hide-row"><button data-hari="${data.hari}" id="hide-day-btn">Sembunyikan hari ini</button></div>
+    `;
+    document.getElementById('hide-day-btn').addEventListener('click', ()=>{
+      hiddenDays.add(activeDay);
+      const nextVisible = CATATAN_MACET_HARIAN.find(c => !hiddenDays.has(c.hari));
+      if(nextVisible) activeDay = nextVisible.hari;
+      renderDayState();
+    });
+  }
+
+  updateRouteToneByDay();
+}
+
+function updateRouteToneByDay(){
+  const data = CATATAN_MACET_HARIAN.find(c => c.hari === activeDay);
+  if(!data) return;
+  const tone = LEVEL_ROUTE_COLOR[data.level];
+  Object.values(routeLayers).forEach(line=>{
+    line.setStyle({ color: tone });
+  });
 }
 
 init();
