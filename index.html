@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trayek 03 — Jejak BBM Bus AKAP Cilegon–Jakarta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root{
+    --bg: #12151B;
+    --panel: #1A1F28;
+    --panel-line: #2A313D;
+    --text: #E9E7DE;
+    --text-dim: #8B93A1;
+    --amber: #F2A93B;
+    --amber-dim: #8A6423;
+    --green: #6FA287;
+    --rust: #C1502E;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-body: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; background:var(--bg); color:var(--text); font-family:var(--font-body); overflow:hidden;}
+
+  #app{position:relative; height:100vh; width:100vw;}
+  #map{position:absolute; inset:0; background:#0d1014;}
+
+  .leaflet-container{background:#0d1014 !important; font-family:var(--font-body);}
+  .leaflet-control-attribution{background:rgba(18,21,27,0.85) !important; color:var(--text-dim) !important; font-size:10px !important;}
+  .leaflet-control-attribution a{color:var(--text-dim) !important;}
+  .leaflet-control-zoom a{background:var(--panel) !important; color:var(--text) !important; border-color:var(--panel-line) !important;}
+  .leaflet-control-zoom a:hover{background:var(--panel-line) !important;}
+
+  /* ===== Header strip ===== */
+  header{
+    position:absolute; top:0; left:0; right:0; z-index:1000;
+    padding:18px 24px 14px;
+    background:linear-gradient(180deg, rgba(13,16,20,0.92) 0%, rgba(13,16,20,0.0) 100%);
+    pointer-events:none;
+  }
+  .kode{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:0.12em;
+    color:var(--amber); margin-bottom:4px;
+  }
+  h1{
+    font-family:var(--font-display); font-weight:700; font-size:clamp(20px, 3vw, 30px);
+    color:var(--text); line-height:1.15; max-width:640px;
+  }
+  .subtitle{
+    font-size:13px; color:var(--text-dim); margin-top:6px; max-width:520px; line-height:1.5;
+  }
+
+  /* ===== Side panel ===== */
+  #panel{
+    position:absolute; top:0; right:0; bottom:0; z-index:1000;
+    width:360px; max-width:92vw;
+    background:var(--panel);
+    border-left:1px solid var(--panel-line);
+    display:flex; flex-direction:column;
+    transform:translateX(0);
+    transition:transform 0.25s ease;
+  }
+  #panel.collapsed{ transform:translateX(100%); }
+  #panel-toggle{
+    position:absolute; top:18px; right:376px; z-index:1001;
+    background:var(--panel); border:1px solid var(--panel-line); color:var(--text);
+    width:34px; height:34px; border-radius:4px; cursor:pointer;
+    font-family:var(--font-mono); font-size:14px;
+    transition:right 0.25s ease;
+  }
+  #panel.collapsed ~ #panel-toggle, #panel-toggle.collapsed{ right:16px; }
+
+  .panel-inner{ overflow-y:auto; padding:76px 20px 20px; flex:1; }
+  .panel-inner::-webkit-scrollbar{width:6px;}
+  .panel-inner::-webkit-scrollbar-thumb{background:var(--panel-line); border-radius:3px;}
+
+  .section-label{
+    font-family:var(--font-mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--text-dim); margin:22px 0 10px;
+  }
+  .section-label:first-child{margin-top:0;}
+
+  /* Summary stat grid */
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .stat-box{
+    background:#151920; border:1px solid var(--panel-line); border-radius:3px; padding:12px 14px;
+  }
+  .stat-box .val{ font-family:var(--font-mono); font-size:20px; font-weight:600; color:var(--text); }
+  .stat-box .val small{ font-size:12px; color:var(--text-dim); font-weight:400; }
+  .stat-box .lbl{ font-size:11px; color:var(--text-dim); margin-top:3px; }
+  .stat-box.warn .val{ color:var(--rust); }
+  .stat-box.good .val{ color:var(--green); }
+
+  /* Trip filter toggle */
+  .trip-filters{ display:flex; gap:8px; }
+  .trip-btn{
+    flex:1; background:#151920; border:1px solid var(--panel-line); color:var(--text-dim);
+    padding:10px 8px; border-radius:3px; cursor:pointer; font-family:var(--font-body);
+    font-size:12.5px; text-align:left; transition:border-color 0.15s, color 0.15s;
+  }
+  .trip-btn .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+  .trip-btn.active{ color:var(--text); border-color:currentColor; }
+  .trip-btn[data-trip="1"].active{ border-color:var(--amber); }
+  .trip-btn[data-trip="2"].active{ border-color:#6C9BD1; }
+  .trip-btn small{ display:block; color:var(--text-dim); font-size:10.5px; margin-top:2px; }
+
+  /* Trip detail card */
+  .trip-detail{
+    background:#151920; border:1px solid var(--panel-line); border-radius:3px; padding:14px;
+    font-size:12.5px; display:none;
+  }
+  .trip-detail.show{ display:block; }
+  .trip-detail h3{ font-family:var(--font-display); font-size:15px; margin-bottom:8px; color:var(--text); }
+  .trip-detail .row{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #20252e; color:var(--text-dim); }
+  .trip-detail .row:last-child{ border-bottom:none; }
+  .trip-detail .row span:last-child{ color:var(--text); font-family:var(--font-mono); font-weight:500; }
+
+  .idle-note{
+    font-size:11.5px; color:var(--text-dim); line-height:1.6; margin-top:8px;
+    padding-top:8px; border-top:1px dashed var(--panel-line);
+  }
+  .idle-note b{ color:var(--amber); font-weight:600; }
+
+  .legend-row{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-dim); margin-bottom:7px; }
+  .legend-line{ width:22px; height:3px; border-radius:2px; }
+  .legend-dot{ width:10px; height:10px; border-radius:50%; border:2px solid var(--bg); }
+
+  .caveat{
+    font-size:11.5px; color:var(--text-dim); line-height:1.65; background:#151920;
+    border:1px solid var(--panel-line); border-left:3px solid var(--amber-dim);
+    padding:12px 14px; border-radius:0 3px 3px 0;
+  }
+
+  footer.credit{
+    font-family:var(--font-mono); font-size:10px; color:var(--text-dim);
+    padding:14px 20px; border-top:1px solid var(--panel-line);
+  }
+
+  /* Popups */
+  .leaflet-popup-content-wrapper{ background:var(--panel); color:var(--text); border-radius:4px; border:1px solid var(--panel-line); }
+  .leaflet-popup-tip{ background:var(--panel); border:1px solid var(--panel-line); }
+  .leaflet-popup-content{ margin:12px 14px; font-family:var(--font-body); font-size:12.5px; min-width:190px; }
+  .popup-title{ font-family:var(--font-display); font-weight:600; font-size:14px; margin-bottom:6px; color:var(--amber); }
+  .popup-row{ display:flex; justify-content:space-between; padding:3px 0; color:var(--text-dim); }
+  .popup-row span:last-child{ color:var(--text); font-family:var(--font-mono); }
+
+  @media (max-width: 720px){
+    #panel{ width:100%; max-width:100%; }
+    #panel-toggle{ right:16px; }
+    #panel.collapsed ~ #panel-toggle{ right:16px; }
+    header{ padding:14px 16px 10px; }
+    h1{ font-size:19px; }
+    .subtitle{ display:none; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="map"></div>
+
+  <header>
+    <div class="kode">K-03 · BUS AKAP · TRAYEK CILEGON–JAKARTA</div>
+    <h1>Jejak BBM Trayek 03</h1>
+    <div class="subtitle">Rekonstruksi rute dan konsumsi Biosolar dari dua keberangkatan bus AKAP dalam satu hari operasi.</div>
+  </header>
+
+  <button id="panel-toggle" title="Tampilkan/sembunyikan panel">☰</button>
+
+  <div id="panel">
+    <div class="panel-inner">
+
+      <div class="section-label">Ringkasan Operasi — 1 Hari</div>
+      <div class="stat-grid" id="summary-grid"></div>
+
+      <div class="section-label">Pilih Keberangkatan</div>
+      <div class="trip-filters" id="trip-filters"></div>
+
+      <div id="trip-details"></div>
+
+      <div class="section-label">Legenda</div>
+      <div class="legend-row"><span class="legend-line" style="background:#F2A93B"></span> Trip 1 — Siang (13:09)</div>
+      <div class="legend-row"><span class="legend-line" style="background:#6C9BD1"></span> Trip 2 — Malam (20:06)</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#6FA287"></span> Titik keberangkatan</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#C1502E"></span> Titik tiba</div>
+
+      <div class="section-label">Keterbatasan Data</div>
+      <div class="caveat">
+        Data GPS bersifat simulasi (bukan rekaman kendaraan sungguhan), direkam tiap 30 detik. Titik berhenti (kecepatan 0 km/jam) diasumsikan sebagai idle/istirahat, bukan kemacetan — keduanya tidak dapat dibedakan dari data ini. Rute mengikuti jalur GPS asli tanpa snapping ke jaringan jalan resmi, sehingga sedikit deviasi dari jalan sebenarnya mungkin terjadi.
+      </div>
+
+    </div>
+    <footer class="credit">CAAS GIS · Week 5 · Tugas Routing WebGIS</footer>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const COLORS = { 1: '#F2A93B', 2: '#6C9BD1' };
+const TRIP_LABEL = { 1: 'Siang', 2: 'Malam' };
+
+let map, routeLayers = {}, pointLayers = {}, activeTrips = new Set([1,2]);
+let ringkasan = null, ruteData = null, titikData = null;
+
+function fmt(n, d=1){ return Number(n).toLocaleString('id-ID', {minimumFractionDigits:d, maximumFractionDigits:d}); }
+function rupiah(n){ return 'Rp' + Math.round(n).toLocaleString('id-ID'); }
+
+async function init(){
+  map = L.map('map', { zoomControl:false, attributionControl:true }).setView([-6.06, 106.4], 10);
+  L.control.zoom({ position:'bottomright' }).addTo(map);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(map);
+
+  const [ruteRes, titikRes, ringkasanRes] = await Promise.all([
+    fetch('data/rute.geojson').then(r=>r.json()),
+    fetch('data/titik_ujung.geojson').then(r=>r.json()),
+    fetch('data/ringkasan.json').then(r=>r.json())
+  ]);
+  ruteData = ruteRes; titikData = titikRes; ringkasan = ringkasanRes;
+
+  buildRouteLayers();
+  buildPointLayers();
+  buildSummary();
+  buildTripFilters();
+  buildTripDetails();
+  fitToActive();
+
+  document.getElementById('panel-toggle').addEventListener('click', ()=>{
+    document.getElementById('panel').classList.toggle('collapsed');
+  });
+}
+
+function buildRouteLayers(){
+  ruteData.features.forEach(f=>{
+    const tripId = f.properties.trip_id;
+    const latlngs = f.geometry.coordinates.map(c=>[c[1], c[0]]);
+    const line = L.polyline(latlngs, {
+      color: COLORS[tripId], weight:4, opacity:0.85, lineJoin:'round'
+    });
+    const p = f.properties;
+    line.bindPopup(`
+      <div class="popup-title">Trip ${tripId} — ${TRIP_LABEL[tripId]}</div>
+      <div class="popup-row"><span>Jam</span><span>${p.jam_mulai}–${p.jam_selesai}</span></div>
+      <div class="popup-row"><span>Jarak</span><span>${fmt(p.jarak_km)} km</span></div>
+      <div class="popup-row"><span>Kecepatan rata²</span><span>${fmt(p.kecepatan_rata)} km/j</span></div>
+      <div class="popup-row"><span>Konsumsi</span><span>${fmt(p.km_per_liter,2)} km/L</span></div>
+      <div class="popup-row"><span>Total Biosolar</span><span>${fmt(p.liter_total,2)} L</span></div>
+      <div class="popup-row"><span>Biaya BBM</span><span>${rupiah(p.biaya_rp)}</span></div>
+      <div class="popup-row"><span>Estimasi boros</span><span>${fmt(p.liter_boros,2)} L</span></div>
+    `);
+    line.addTo(map);
+    routeLayers[tripId] = line;
+  });
+}
+
+function buildPointLayers(){
+  titikData.features.forEach(f=>{
+    const tripId = f.properties.trip_id;
+    const isStart = f.properties.jenis === 'Titik Awal';
+    const marker = L.circleMarker([f.geometry.coordinates[1], f.geometry.coordinates[0]], {
+      radius:7, weight:2, color:'#0d1014',
+      fillColor: isStart ? '#6FA287' : '#C1502E', fillOpacity:1
+    });
+    const p = f.properties;
+    marker.bindPopup(`
+      <div class="popup-title">${p.jenis} — Trip ${tripId}</div>
+      <div class="popup-row"><span>Waktu</span><span>${p.waktu}</span></div>
+      <div class="popup-row"><span>Jarak tempuh trip</span><span>${fmt(p.jarak_km)} km</span></div>
+      <div class="popup-row"><span>Total Biosolar</span><span>${fmt(p.liter_total,2)} L</span></div>
+      <div class="popup-row"><span>Biaya BBM</span><span>${rupiah(p.biaya_rp)}</span></div>
+    `);
+    marker.addTo(map);
+    if(!pointLayers[tripId]) pointLayers[tripId] = [];
+    pointLayers[tripId].push(marker);
+  });
+}
+
+function buildSummary(){
+  const r = ringkasan;
+  const grid = document.getElementById('summary-grid');
+  grid.innerHTML = `
+    <div class="stat-box"><div class="val">${fmt(r.total_km)}<small> km</small></div><div class="lbl">Total jarak (2 trip)</div></div>
+    <div class="stat-box"><div class="val">${fmt(r.total_liter,1)}<small> L</small></div><div class="lbl">Total Biosolar</div></div>
+    <div class="stat-box"><div class="val" style="font-size:16px">${rupiah(r.total_biaya)}</div><div class="lbl">Total biaya BBM</div></div>
+    <div class="stat-box warn"><div class="val">${fmt(r.liter_boros,1)}<small> L</small></div><div class="lbl">BBM boros (${rupiah(r.biaya_boros)})</div></div>
+    <div class="stat-box good"><div class="val">${fmt(r.efisiensi_acuan,1)}<small> km/L</small></div><div class="lbl">Efisiensi acuan pabrikan</div></div>
+    <div class="stat-box"><div class="val">${fmt(r.liter_idle,1)}<small> L</small></div><div class="lbl">Terbakar saat idle</div></div>
+  `;
+}
+
+function buildTripFilters(){
+  const wrap = document.getElementById('trip-filters');
+  wrap.innerHTML = '';
+  ruteData.features.forEach(f=>{
+    const tripId = f.properties.trip_id;
+    const btn = document.createElement('button');
+    btn.className = 'trip-btn active';
+    btn.dataset.trip = tripId;
+    btn.innerHTML = `<span class="dot" style="background:${COLORS[tripId]}"></span>Trip ${tripId} — ${TRIP_LABEL[tripId]}<small>${f.properties.jam_mulai}, ${fmt(f.properties.km_per_liter,2)} km/L</small>`;
+    btn.addEventListener('click', ()=> toggleTrip(tripId, btn));
+    wrap.appendChild(btn);
+  });
+}
+
+function toggleTrip(tripId, btn){
+  if(activeTrips.has(tripId)){
+    if(activeTrips.size === 1) return; // jangan izinkan kosong total
+    activeTrips.delete(tripId);
+    btn.classList.remove('active');
+    map.removeLayer(routeLayers[tripId]);
+    pointLayers[tripId].forEach(m=>map.removeLayer(m));
+  } else {
+    activeTrips.add(tripId);
+    btn.classList.add('active');
+    routeLayers[tripId].addTo(map);
+    pointLayers[tripId].forEach(m=>m.addTo(map));
+  }
+  document.querySelectorAll('.trip-detail').forEach(el=>{
+    el.classList.toggle('show', activeTrips.has(Number(el.dataset.trip)));
+  });
+  fitToActive();
+}
+
+function fitToActive(){
+  const bounds = L.latLngBounds([]);
+  activeTrips.forEach(id=> bounds.extend(routeLayers[id].getBounds()));
+  if(bounds.isValid()) map.fitBounds(bounds, { padding:[40,40] });
+}
+
+const IDLE_NOTES = {
+  1: '4 kali berhenti tercatat, termasuk jeda 5 menit pukul 13:10–13:15 dan 10 menit pukul 14:45–14:55.',
+  2: '2 kali berhenti tercatat, salah satunya jeda 30 menit pukul 21:25–21:55 — diduga istirahat sopir.'
+};
+
+function buildTripDetails(){
+  const wrap = document.getElementById('trip-details');
+  wrap.innerHTML = '';
+  ruteData.features.forEach(f=>{
+    const p = f.properties;
+    const tripId = p.trip_id;
+    const div = document.createElement('div');
+    div.className = 'trip-detail show';
+    div.dataset.trip = tripId;
+    div.style.marginBottom = '10px';
+    div.innerHTML = `
+      <h3>Trip ${tripId} — ${TRIP_LABEL[tripId]}</h3>
+      <div class="row"><span>Berangkat</span><span>${p.jam_mulai} WIB</span></div>
+      <div class="row"><span>Tiba</span><span>${p.jam_selesai} WIB</span></div>
+      <div class="row"><span>Durasi</span><span>${fmt(p.durasi_menit,0)} menit</span></div>
+      <div class="row"><span>Jarak</span><span>${fmt(p.jarak_km)} km</span></div>
+      <div class="row"><span>Kecepatan rata² / maks</span><span>${fmt(p.kecepatan_rata,1)} / ${fmt(p.kecepatan_maks,1)} km/j</span></div>
+      <div class="row"><span>Konsumsi</span><span>${fmt(p.km_per_liter,2)} km/L</span></div>
+      <div class="row"><span>Biosolar terpakai</span><span>${fmt(p.liter_total,2)} L</span></div>
+      <div class="row"><span>— saat berjalan</span><span>${fmt(p.liter_jalan,2)} L</span></div>
+      <div class="row"><span>— saat idle (${fmt(p.menit_idle,0)} mnt)</span><span>${fmt(p.liter_idle,2)} L</span></div>
+      <div class="row"><span>Biaya BBM</span><span>${rupiah(p.biaya_rp)}</span></div>
+      <div class="row"><span>Estimasi boros</span><span>${fmt(p.liter_boros,2)} L (${rupiah(p.biaya_boros_rp)})</span></div>
+      <div class="idle-note"><b>Catatan idle:</b> ${IDLE_NOTES[tripId]}</div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

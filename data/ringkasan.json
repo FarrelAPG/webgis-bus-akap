@@ -1,0 +1,19 @@
+{
+  "kode_kendaraan": "K-03",
+  "kendaraan": "Bus AKAP",
+  "trayek": "Cilegon – Jakarta",
+  "jenis_bbm": "Biosolar",
+  "harga_per_liter": 6800,
+  "efisiensi_acuan": 3.5,
+  "jumlah_hari": 1,
+  "jumlah_trip": 2,
+  "total_km": 253.5,
+  "total_liter": 79.4,
+  "total_biaya": 540217,
+  "liter_idle": 3.0,
+  "liter_boros": 7.0,
+  "biaya_boros": 47725,
+  "catatan": "Data simulasi, bukan rekaman kendaraan sungguhan.",
+  "siang_trip": 2,
+  "siang_km_per_liter": 3.19
+}
