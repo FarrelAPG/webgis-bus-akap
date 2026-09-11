@@ -1,0 +1,127 @@
+{
+  "type": "FeatureCollection",
+  "name": "titik_rawan_macet",
+  "catatan": "Estimasi titik rawan kemacetan di koridor Cilegon-Serang-Tangerang-Jakarta, disusun berdasarkan pengetahuan umum area (bukan hasil deteksi dari data GPS, karena data GPS mentah hanya mencatat kondisi bergerak normal atau berhenti total tanpa fase 'merayap').",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "M1",
+        "nama": "Simpang Cilegon-Serang (KM 8)",
+        "level": "sedang",
+        "alasan": "Simpang akses keluar kota Cilegon menuju jalur arteri Serang, padat saat jam berangkat kerja/pulang kerja karena volume kendaraan lokal bercampur dengan bus AKAP.",
+        "estimasi_tambahan_menit": 8,
+        "kecepatan_saat_macet_kmh": 8,
+        "estimasi_liter_terbuang": 0.294,
+        "estimasi_biaya_terbuang_rp": 1997
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          106.07451,
+          -6.01025
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "M2",
+        "nama": "Pasar/Simpang Kota Serang (KM 35)",
+        "level": "tinggi",
+        "alasan": "Area pasar dan pertokoan di jalur utama Serang, aktivitas penyeberangan pejalan kaki dan kendaraan berhenti sembarangan (on-street parking) menyebabkan kepadatan tinggi terutama siang hari.",
+        "estimasi_tambahan_menit": 15,
+        "kecepatan_saat_macet_kmh": 5,
+        "estimasi_liter_terbuang": 0.551,
+        "estimasi_biaya_terbuang_rp": 3745
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          106.26246,
+          -6.1395
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "M3",
+        "nama": "Simpang Balaraja (KM 60)",
+        "level": "sedang",
+        "alasan": "Pertigaan akses kawasan industri Balaraja, volume truk dan kendaraan logistik tinggi terutama jam pergantian shift pabrik.",
+        "estimasi_tambahan_menit": 10,
+        "kecepatan_saat_macet_kmh": 10,
+        "estimasi_liter_terbuang": 0.367,
+        "estimasi_biaya_terbuang_rp": 2496
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          106.43712,
+          -6.2239
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "M4",
+        "nama": "Area Tangerang Kota (KM 88)",
+        "level": "tinggi",
+        "alasan": "Wilayah perkotaan padat Tangerang, banyak titik naik-turun penumpang angkutan umum dan persimpangan tanpa lampu lalu lintas memadai.",
+        "estimasi_tambahan_menit": 18,
+        "kecepatan_saat_macet_kmh": 6,
+        "estimasi_liter_terbuang": 0.661,
+        "estimasi_biaya_terbuang_rp": 4494
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          106.6651,
+          -6.21807
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "M5",
+        "nama": "Simpang Kembangan (KM 108)",
+        "level": "sedang",
+        "alasan": "Pertemuan arus dari arah barat menuju tol dalam kota Jakarta, sering terjadi antrean saat jam sibuk sore.",
+        "estimasi_tambahan_menit": 12,
+        "kecepatan_saat_macet_kmh": 9,
+        "estimasi_liter_terbuang": 0.441,
+        "estimasi_biaya_terbuang_rp": 2996
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          106.76463,
+          -6.12203
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "M6",
+        "nama": "Mendekati Terminal Jakarta (KM 122)",
+        "level": "tinggi",
+        "alasan": "Area padat mendekati titik akhir trayek di Jakarta, kepadatan lalu lintas kota dan antrean kendaraan menuju terminal.",
+        "estimasi_tambahan_menit": 14,
+        "kecepatan_saat_macet_kmh": 7,
+        "estimasi_liter_terbuang": 0.514,
+        "estimasi_biaya_terbuang_rp": 3495
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          106.88454,
+          -6.12707
+        ]
+      }
+    }
+  ]
+}

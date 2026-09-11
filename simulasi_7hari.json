@@ -1,0 +1,180 @@
+{
+  "catatan": "Simulasi 7 hari dibuat dari pola 2 trip asli (data observasi 1 hari) dengan variasi jarak wajar (±2-3%) dan estimasi tambahan konsumsi BBM akibat risiko macet di titik-titik rawan. Bukan rekaman kendaraan sungguhan tiap hari.",
+  "ringkasan_minggu": {
+    "total_km": 1783.6,
+    "total_liter": 573.1,
+    "total_biaya": 3897012,
+    "total_boros_liter": 14.1,
+    "total_boros_biaya": 95880
+  },
+  "harian": [
+    {
+      "hari": "Senin",
+      "weekend": false,
+      "trip": "siang",
+      "jarak_km": 126.0,
+      "liter_dasar": 40.91,
+      "liter_macet_estimasi": 2.1,
+      "liter_total": 43.01,
+      "km_per_liter": 2.93,
+      "biaya_rp": 292468,
+      "biaya_macet_rp": 14280
+    },
+    {
+      "hari": "Senin",
+      "weekend": false,
+      "trip": "malam",
+      "jarak_km": 125.9,
+      "liter_dasar": 38.04,
+      "liter_macet_estimasi": 0.44,
+      "liter_total": 38.48,
+      "km_per_liter": 3.27,
+      "biaya_rp": 261664,
+      "biaya_macet_rp": 2992
+    },
+    {
+      "hari": "Selasa",
+      "weekend": false,
+      "trip": "siang",
+      "jarak_km": 128.6,
+      "liter_dasar": 41.75,
+      "liter_macet_estimasi": 1.74,
+      "liter_total": 43.49,
+      "km_per_liter": 2.96,
+      "biaya_rp": 295732,
+      "biaya_macet_rp": 11832
+    },
+    {
+      "hari": "Selasa",
+      "weekend": false,
+      "trip": "malam",
+      "jarak_km": 128.4,
+      "liter_dasar": 38.79,
+      "liter_macet_estimasi": 0.84,
+      "liter_total": 39.63,
+      "km_per_liter": 3.24,
+      "biaya_rp": 269484,
+      "biaya_macet_rp": 5712
+    },
+    {
+      "hari": "Rabu",
+      "weekend": false,
+      "trip": "siang",
+      "jarak_km": 126.9,
+      "liter_dasar": 41.2,
+      "liter_macet_estimasi": 2.31,
+      "liter_total": 43.51,
+      "km_per_liter": 2.92,
+      "biaya_rp": 295868,
+      "biaya_macet_rp": 15708
+    },
+    {
+      "hari": "Rabu",
+      "weekend": false,
+      "trip": "malam",
+      "jarak_km": 126.8,
+      "liter_dasar": 38.31,
+      "liter_macet_estimasi": 0.47,
+      "liter_total": 38.78,
+      "km_per_liter": 3.27,
+      "biaya_rp": 263704,
+      "biaya_macet_rp": 3196
+    },
+    {
+      "hari": "Kamis",
+      "weekend": false,
+      "trip": "siang",
+      "jarak_km": 127.5,
+      "liter_dasar": 41.4,
+      "liter_macet_estimasi": 1.58,
+      "liter_total": 42.98,
+      "km_per_liter": 2.97,
+      "biaya_rp": 292264,
+      "biaya_macet_rp": 10744
+    },
+    {
+      "hari": "Kamis",
+      "weekend": false,
+      "trip": "malam",
+      "jarak_km": 127.4,
+      "liter_dasar": 38.49,
+      "liter_macet_estimasi": 0.55,
+      "liter_total": 39.04,
+      "km_per_liter": 3.26,
+      "biaya_rp": 265472,
+      "biaya_macet_rp": 3740
+    },
+    {
+      "hari": "Jumat",
+      "weekend": false,
+      "trip": "siang",
+      "jarak_km": 128.4,
+      "liter_dasar": 41.69,
+      "liter_macet_estimasi": 1.58,
+      "liter_total": 43.27,
+      "km_per_liter": 2.97,
+      "biaya_rp": 294236,
+      "biaya_macet_rp": 10744
+    },
+    {
+      "hari": "Jumat",
+      "weekend": false,
+      "trip": "malam",
+      "jarak_km": 128.3,
+      "liter_dasar": 38.76,
+      "liter_macet_estimasi": 0.54,
+      "liter_total": 39.3,
+      "km_per_liter": 3.26,
+      "biaya_rp": 267240,
+      "biaya_macet_rp": 3672
+    },
+    {
+      "hari": "Sabtu",
+      "weekend": true,
+      "trip": "siang",
+      "jarak_km": 126.7,
+      "liter_dasar": 41.14,
+      "liter_macet_estimasi": 0.73,
+      "liter_total": 41.87,
+      "km_per_liter": 3.03,
+      "biaya_rp": 284716,
+      "biaya_macet_rp": 4964
+    },
+    {
+      "hari": "Sabtu",
+      "weekend": true,
+      "trip": "malam",
+      "jarak_km": 126.6,
+      "liter_dasar": 38.25,
+      "liter_macet_estimasi": 0.2,
+      "liter_total": 38.45,
+      "km_per_liter": 3.29,
+      "biaya_rp": 261460,
+      "biaya_macet_rp": 1360
+    },
+    {
+      "hari": "Minggu",
+      "weekend": true,
+      "trip": "siang",
+      "jarak_km": 128.1,
+      "liter_dasar": 41.59,
+      "liter_macet_estimasi": 0.88,
+      "liter_total": 42.47,
+      "km_per_liter": 3.02,
+      "biaya_rp": 288796,
+      "biaya_macet_rp": 5984
+    },
+    {
+      "hari": "Minggu",
+      "weekend": true,
+      "trip": "malam",
+      "jarak_km": 128.0,
+      "liter_dasar": 38.67,
+      "liter_macet_estimasi": 0.14,
+      "liter_total": 38.81,
+      "km_per_liter": 3.3,
+      "biaya_rp": 263908,
+      "biaya_macet_rp": 952
+    }
+  ]
+}
