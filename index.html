@@ -136,6 +136,40 @@
     padding:12px 14px; border-radius:0 3px 3px 0;
   }
 
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:#151920; border:1px solid var(--panel-line); border-radius:3px; padding:10px 12px; }
+  .toggle-row span{ font-size:12.5px; color:var(--text); }
+  .switch{ position:relative; width:36px; height:20px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch .slider{ position:absolute; inset:0; background:#2A313D; border-radius:20px; cursor:pointer; transition:0.15s; }
+  .switch .slider::before{ content:''; position:absolute; width:14px; height:14px; left:3px; top:3px;
+    background:var(--text-dim); border-radius:50%; transition:0.15s; }
+  .switch input:checked + .slider{ background:var(--amber-dim); }
+  .switch input:checked + .slider::before{ transform:translateX(16px); background:var(--amber); }
+
+  .sim-note{ font-size:11px; color:var(--text-dim); background:#1f1710; border:1px solid var(--amber-dim);
+    border-radius:3px; padding:9px 11px; line-height:1.55; margin-bottom:10px; }
+  .sim-note b{ color:var(--amber); }
+
+  .week-table{ width:100%; border-collapse:collapse; font-size:11.5px; margin-bottom:8px; }
+  .week-table th{ text-align:left; color:var(--text-dim); font-weight:500; font-size:10px;
+    text-transform:uppercase; letter-spacing:0.05em; padding:6px 4px; border-bottom:1px solid var(--panel-line); }
+  .week-table td{ padding:6px 4px; border-bottom:1px solid #1c212a; color:var(--text); font-family:var(--font-mono); }
+  .week-table td.day-label{ font-family:var(--font-body); color:var(--text-dim); }
+  .week-table tr.weekend td.day-label{ color:var(--green); }
+  .week-table tr.weekend td.day-label::after{ content:' •'; }
+
+  .macet-item{ display:flex; justify-content:space-between; align-items:center; gap:8px;
+    padding:7px 0; border-bottom:1px solid #1c212a; font-size:11.5px; }
+  .macet-item:last-child{ border-bottom:none; }
+  .macet-item .lvl{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .macet-item .lvl.tinggi{ background:var(--rust); }
+  .macet-item .lvl.sedang{ background:var(--amber); }
+  .macet-item .lvl.rendah{ background:var(--text-dim); }
+  .macet-item .desc{ flex:1; color:var(--text-dim); }
+  .macet-item .desc b{ color:var(--text); font-weight:500; }
+  .macet-item .dur{ font-family:var(--font-mono); color:var(--text); }
+
   footer.credit{
     font-family:var(--font-mono); font-size:10px; color:var(--text-dim);
     padding:14px 20px; border-top:1px solid var(--panel-line);
@@ -166,7 +200,7 @@
   <header>
     <div class="kode">K-03 · BUS AKAP · TRAYEK CILEGON–JAKARTA</div>
     <h1>Jejak BBM Trayek 03</h1>
-    <div class="subtitle">Rekonstruksi rute dan konsumsi Biosolar dari dua keberangkatan bus AKAP dalam satu hari operasi.</div>
+    <div class="subtitle">Rekonstruksi rute dan konsumsi Biosolar dari dua keberangkatan bus AKAP, diperluas menjadi estimasi pola operasi 7 hari lengkap dengan titik rawan macet di sepanjang jalur dan perkiraan BBM yang terbuang akibatnya.</div>
   </header>
 
   <button id="panel-toggle" title="Tampilkan/sembunyikan panel">☰</button>
@@ -174,7 +208,7 @@
   <div id="panel">
     <div class="panel-inner">
 
-      <div class="section-label">Ringkasan Operasi — 1 Hari</div>
+      <div class="section-label">Ringkasan Operasi — Data Observasi</div>
       <div class="stat-grid" id="summary-grid"></div>
 
       <div class="section-label">Pilih Keberangkatan</div>
@@ -185,13 +219,30 @@
       <div class="section-label">Legenda</div>
       <div class="legend-row"><span class="legend-line" style="background:#F2A93B"></span> Trip 1 — Siang (13:09)</div>
       <div class="legend-row"><span class="legend-line" style="background:#6C9BD1"></span> Trip 2 — Malam (20:06)</div>
+      <div class="legend-row"><span class="legend-line" style="background:#C1502E"></span> Segmen dekat titik rawan macet</div>
       <div class="legend-row"><span class="legend-dot" style="background:#6FA287"></span> Titik keberangkatan</div>
       <div class="legend-row"><span class="legend-dot" style="background:#C1502E"></span> Titik tiba</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#C1502E;width:10px;height:10px"></span> Titik rawan macet — risiko tinggi</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#F2A93B;width:8px;height:8px"></span> Titik rawan macet — risiko sedang</div>
 
       <div class="section-label">Keterbatasan Data</div>
       <div class="caveat">
-        Data GPS bersifat simulasi (bukan rekaman kendaraan sungguhan), direkam tiap 30 detik. Titik berhenti (kecepatan 0 km/jam) diasumsikan sebagai idle/istirahat, bukan kemacetan — keduanya tidak dapat dibedakan dari data ini. Rute mengikuti jalur GPS asli tanpa snapping ke jaringan jalan resmi, sehingga sedikit deviasi dari jalan sebenarnya mungkin terjadi.
+        Data GPS bersifat simulasi (bukan rekaman kendaraan sungguhan), direkam tiap 30 detik, dan hanya mencatat dua kondisi: bergerak normal atau berhenti total (0 km/jam) — tidak ada fase "merayap pelan" yang bisa dipakai mendeteksi macet secara langsung. Karena itu, <b>titik rawan macet di peta ini adalah estimasi berbasis pengetahuan umum area rute</b> (pasar, simpang, kawasan industri, area padat kota), bukan hasil deteksi dari rekaman GPS. Perhitungan liter/biaya BBM risiko memakai rata-rata konsumsi idle aktual dari data (≈0,037 L/menit) dikalikan estimasi lama tambahan berhenti di tiap titik. Rute mengikuti jalur GPS asli tanpa snapping ke jaringan jalan resmi, sehingga sedikit deviasi dari jalan sebenarnya mungkin terjadi.
       </div>
+
+      <div class="section-label">Risiko Macet & BBM Terbuang</div>
+      <div class="stat-grid" id="risiko-grid" style="margin-bottom:10px;"></div>
+      <div id="macet-list"></div>
+
+      <div class="toggle-row" style="margin-top:10px;">
+        <span>Tampilkan titik &amp; segmen macet di peta</span>
+        <label class="switch"><input type="checkbox" id="macet-toggle" checked><span class="slider"></span></label>
+      </div>
+
+      <div class="section-label">Simulasi 1 Minggu</div>
+      <div class="sim-note"><b>Catatan:</b> Data di bawah adalah estimasi 7 hari, dibuat dari pola 2 trip asli (1 hari observasi), variasi jarak wajar ±2–3%, dan estimasi tambahan BBM akibat risiko macet (weekday diasumsikan lebih rawan macet daripada weekend) — bukan rekaman sungguhan tiap hari.</div>
+      <div class="stat-grid" id="week-summary"></div>
+      <table class="week-table" id="week-table" style="margin-top:10px;"></table>
 
     </div>
     <footer class="credit">CAAS GIS · Week 5 · Tugas Routing WebGIS</footer>
@@ -218,18 +269,24 @@ async function init(){
     subdomains: 'abc', maxZoom: 19
   }).addTo(map);
 
-  const [ruteRes, titikRes, ringkasanRes] = await Promise.all([
+  const [ruteRes, titikRes, ringkasanRes, macetRes, simRes] = await Promise.all([
     fetch('data/rute.geojson').then(r=>r.json()),
     fetch('data/titik_ujung.geojson').then(r=>r.json()),
-    fetch('data/ringkasan.json').then(r=>r.json())
+    fetch('data/ringkasan.json').then(r=>r.json()),
+    fetch('data/titik_macet.geojson').then(r=>r.json()),
+    fetch('data/simulasi_7hari.json').then(r=>r.json())
   ]);
   ruteData = ruteRes; titikData = titikRes; ringkasan = ringkasanRes;
 
   buildRouteLayers();
+  buildMacetSegments(macetRes);
   buildPointLayers();
+  buildMacetLayer(macetRes);
   buildSummary();
+  buildRisikoSummary(macetRes);
   buildTripFilters();
   buildTripDetails();
+  buildWeekSimulation(simRes);
   fitToActive();
 
   document.getElementById('panel-toggle').addEventListener('click', ()=>{
@@ -367,6 +424,122 @@ function buildTripDetails(){
     wrap.appendChild(div);
   });
 }
+
+let macetSegmentLayers = [];
+
+function distKm(a, b){
+  const R = 6371;
+  const toRad = d => d*Math.PI/180;
+  const dphi = toRad(b[1]-a[1]);
+  const dlmb = toRad(b[0]-a[0]);
+  const x = Math.sin(dphi/2)**2 + Math.cos(toRad(a[1]))*Math.cos(toRad(b[1]))*Math.sin(dlmb/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));
+}
+
+function buildMacetSegments(macetData){
+  // Untuk tiap trip, highlight segmen polyline yang berada dekat (radius ~2.5km) dari titik rawan macet
+  const RADIUS_KM = 2.5;
+  ruteData.features.forEach(f=>{
+    const coords = f.geometry.coordinates; // [lon,lat]
+    macetData.features.forEach(m=>{
+      const mc = m.geometry.coordinates;
+      const levelColor = m.properties.level === 'tinggi' ? '#C1502E' : '#F2A93B';
+      let segStart = null;
+      for(let i=0;i<coords.length;i++){
+        const near = distKm(coords[i], mc) <= RADIUS_KM;
+        if(near && segStart===null) segStart = i;
+        if((!near || i===coords.length-1) && segStart!==null){
+          const segEnd = near ? i : i-1;
+          if(segEnd > segStart){
+            const latlngs = coords.slice(segStart, segEnd+1).map(c=>[c[1],c[0]]);
+            const seg = L.polyline(latlngs, { color: levelColor, weight:6, opacity:0.9 });
+            seg.bindPopup(`<div class="popup-title">${m.properties.nama}</div><div class="popup-row"><span>Level risiko</span><span>${m.properties.level}</span></div><div class="popup-row"><span>Estimasi liter terbuang</span><span>${fmt(m.properties.estimasi_liter_terbuang,2)} L</span></div>`);
+            seg.addTo(map);
+            macetSegmentLayers.push(seg);
+          }
+          segStart = null;
+        }
+      }
+    });
+  });
+}
+
+function buildRisikoSummary(macetData){
+  const totalLiter = macetData.features.reduce((s,f)=>s+f.properties.estimasi_liter_terbuang,0);
+  const totalBiaya = macetData.features.reduce((s,f)=>s+f.properties.estimasi_biaya_terbuang_rp,0);
+  const totalMenit = macetData.features.reduce((s,f)=>s+f.properties.estimasi_tambahan_menit,0);
+  const grid = document.getElementById('risiko-grid');
+  grid.innerHTML = `
+    <div class="stat-box warn"><div class="val">${fmt(totalLiter,2)}<small> L</small></div><div class="lbl">Estimasi BBM terbuang / lintasan (jika semua titik macet)</div></div>
+    <div class="stat-box warn"><div class="val" style="font-size:16px">${rupiah(totalBiaya)}</div><div class="lbl">Estimasi biaya risiko / lintasan</div></div>
+    <div class="stat-box"><div class="val">${fmt(totalMenit,0)}<small> mnt</small></div><div class="lbl">Total tambahan waktu jika kena semua titik</div></div>
+    <div class="stat-box"><div class="val">${macetData.features.length}</div><div class="lbl">Titik rawan macet teridentifikasi</div></div>
+  `;
+}
+
+function buildMacetLayer(macetData){
+  let macetMarkers = [];
+  const levelColor = { tinggi:'#C1502E', sedang:'#F2A93B', rendah:'#8B93A1' };
+  macetData.features.forEach(f=>{
+    const p = f.properties;
+    const m = L.circleMarker([f.geometry.coordinates[1], f.geometry.coordinates[0]], {
+      radius: p.level === 'tinggi' ? 11 : (p.level === 'sedang' ? 9 : 7),
+      weight:2, color:'#0d1014', fillColor: levelColor[p.level], fillOpacity:0.9
+    });
+    m.bindPopup(`
+      <div class="popup-title">${p.nama}</div>
+      <div class="popup-row"><span>Level risiko</span><span>${p.level}</span></div>
+      <div class="popup-row"><span>Alasan</span><span style="text-align:right;max-width:170px;">${p.alasan}</span></div>
+      <div class="popup-row"><span>Estimasi tambahan waktu</span><span>${p.estimasi_tambahan_menit} menit</span></div>
+      <div class="popup-row"><span>Kecepatan saat macet</span><span>${p.kecepatan_saat_macet_kmh} km/j</span></div>
+      <div class="popup-row"><span>Est. BBM terbuang</span><span>${fmt(p.estimasi_liter_terbuang,2)} L</span></div>
+      <div class="popup-row"><span>Est. biaya terbuang</span><span>${rupiah(p.estimasi_biaya_terbuang_rp)}</span></div>
+    `);
+    m.addTo(map);
+    macetMarkers.push(m);
+  });
+
+  const listEl = document.getElementById('macet-list');
+  listEl.innerHTML = macetData.features.map(f=>{
+    const p = f.properties;
+    return `<div class="macet-item">
+      <span class="lvl ${p.level}"></span>
+      <span class="desc"><b>${p.nama}</b> — +${p.estimasi_tambahan_menit}mnt, ${fmt(p.estimasi_liter_terbuang,2)}L</span>
+      <span class="dur">${rupiah(p.estimasi_biaya_terbuang_rp)}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('macet-toggle').addEventListener('change', (e)=>{
+    macetMarkers.forEach(m=> e.target.checked ? m.addTo(map) : map.removeLayer(m));
+    macetSegmentLayers.forEach(s=> e.target.checked ? s.addTo(map) : map.removeLayer(s));
+  });
+}
+
+function buildWeekSimulation(simData){
+  const s = simData.ringkasan_minggu;
+  document.getElementById('week-summary').innerHTML = `
+    <div class="stat-box"><div class="val">${fmt(s.total_km,0)}<small> km</small></div><div class="lbl">Total jarak 7 hari (14 trip)</div></div>
+    <div class="stat-box"><div class="val">${fmt(s.total_liter,1)}<small> L</small></div><div class="lbl">Total Biosolar</div></div>
+    <div class="stat-box"><div class="val" style="font-size:15px">${rupiah(s.total_biaya)}</div><div class="lbl">Total biaya BBM</div></div>
+    <div class="stat-box warn"><div class="val">${fmt(s.total_boros_liter,1)}<small> L</small></div><div class="lbl">Est. BBM terbuang akibat macet (${rupiah(s.total_boros_biaya)})</div></div>
+  `;
+
+  const table = document.getElementById('week-table');
+  const rows = simData.harian.map(h=>`
+    <tr class="${h.weekend ? 'weekend' : ''}">
+      <td class="day-label">${h.hari.slice(0,3)} ${TRIP_LABEL_SHORT[h.trip]}</td>
+      <td>${fmt(h.jarak_km,0)}km</td>
+      <td>${fmt(h.km_per_liter,2)}</td>
+      <td>${rupiah(h.biaya_rp)}</td>
+      <td>${fmt(h.liter_macet_estimasi,2)}L</td>
+    </tr>
+  `).join('');
+  table.innerHTML = `
+    <tr><th>Hari</th><th>Jarak</th><th>km/L</th><th>Biaya</th><th>BBM Macet</th></tr>
+    ${rows}
+  `;
+}
+const TRIP_LABEL_SHORT = { siang:'☀', malam:'☾' };
 
 init();
 </script>
