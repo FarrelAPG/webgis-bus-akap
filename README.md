@@ -2,7 +2,7 @@
 
 WebGIS untuk memvisualisasikan rute dan konsumsi bahan bakar dua keberangkatan bus AKAP (K-03) pada trayek Cilegon–Jakarta dalam satu hari operasi. Dibuat untuk Tugas Week 5 — CAAS GIS.
 
-**Live demo:** _(isi link Vercel setelah deploy)_
+**Live demo:** https://webgis-bus-akap.vercel.app
 
 ## Konsep
 
@@ -48,7 +48,7 @@ Semua data berada di `/data` dan digunakan apa adanya dari materi tugas (data si
 
 ## Fitur
 
-- Peta interaktif (Leaflet + basemap CARTO dark) dengan layer rute per-trip berwarna berbeda
+- Peta interaktif (Leaflet + basemap OpenStreetMap, ditampilkan dalam tema gelap) dengan layer rute per-trip berwarna berbeda
 - Popup pada rute dan titik awal/akhir berisi metrik lengkap (jarak, kecepatan, konsumsi, biaya)
 - Filter tampil/sembunyikan trip (siang/malam)
 - Panel ringkasan total dan detail per-trip, termasuk estimasi BBM boros dan biaya boros
@@ -83,5 +83,6 @@ Di-deploy sebagai static site ke Vercel. Tidak ada proses build — file `index.
 ## Teknologi
 
 - [Leaflet.js](https://leafletjs.com/) — peta interaktif
-- [CARTO Dark Matter basemap](https://carto.com/basemaps) — basemap gelap
+- [OpenStreetMap](https://www.openstreetmap.org/) — basemap, ditampilkan dalam tema gelap lewat CSS filter
 - Vanilla JavaScript, tanpa framework atau build step
+-
