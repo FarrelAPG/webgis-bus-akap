@@ -242,12 +242,13 @@
       <div id="trip-details"></div>
 
       <div class="section-label">Legenda</div>
+      <div class="legend-row"><span class="legend-line" style="background:#F2A93B"></span> Trip 1 — Siang (13:09)</div>
+      <div class="legend-row"><span class="legend-line" style="background:#6C9BD1"></span> Trip 2 — Malam (20:06)</div>
       <div class="legend-row"><span class="legend-dot" style="background:#6FA287"></span> Titik keberangkatan</div>
       <div class="legend-row"><span class="legend-dot" style="background:#C1502E"></span> Titik tiba</div>
-      <div class="legend-row"><span class="legend-line" style="background:#6FA287"></span> Rute — potensi macet rendah (hari terpilih)</div>
-      <div class="legend-row"><span class="legend-line" style="background:#F2A93B"></span> Rute — potensi macet sedang (hari terpilih)</div>
-      <div class="legend-row"><span class="legend-line" style="background:#C1502E"></span> Rute — potensi macet tinggi (hari terpilih)</div>
-      <div class="legend-row" style="font-size:11px; color:var(--text-dim); margin-top:2px;">Warna rute mengikuti tingkat potensi macet pada hari yang dipilih di bawah — gunakan tombol "Pilih Keberangkatan" untuk membandingkan trip siang/malam.</div>
+      <div class="legend-row"><span class="legend-line" style="background:#C1502E; height:6px; opacity:0.55;"></span> Outline tebal = potensi macet tinggi (hari terpilih)</div>
+      <div class="legend-row"><span class="legend-line" style="background:#F2A93B; height:4px; opacity:0.55;"></span> Outline sedang = potensi macet sedang</div>
+      <div class="legend-row"><span class="legend-line" style="background:#6FA287; height:2px; opacity:0.55;"></span> Outline tipis = potensi macet rendah</div>
 
       <div class="section-label">Keterbatasan Data</div>
       <div class="caveat">
@@ -306,12 +307,23 @@ async function init(){
   });
 }
 
+let routeOutlines = {};
+
 function buildRouteLayers(){
   ruteData.features.forEach(f=>{
     const tripId = f.properties.trip_id;
     const latlngs = f.geometry.coordinates.map(c=>[c[1], c[0]]);
+
+    // Outline layer (di bawah) - ketebalan & warna mengikuti tone macet hari terpilih
+    const outline = L.polyline(latlngs, {
+      color: '#8B93A1', weight:8, opacity:0.55, lineJoin:'round'
+    });
+    outline.addTo(map);
+    routeOutlines[tripId] = outline;
+
+    // Garis utama - warna tetap oranye (siang) / biru (malam), tidak berubah
     const line = L.polyline(latlngs, {
-      color: COLORS[tripId], weight:4, opacity:0.85, lineJoin:'round'
+      color: COLORS[tripId], weight:4, opacity:0.95, lineJoin:'round'
     });
     const p = f.properties;
     line.bindPopup(`
@@ -384,10 +396,12 @@ function toggleTrip(tripId, btn){
     activeTrips.delete(tripId);
     btn.classList.remove('active');
     map.removeLayer(routeLayers[tripId]);
+    map.removeLayer(routeOutlines[tripId]);
     pointLayers[tripId].forEach(m=>map.removeLayer(m));
   } else {
     activeTrips.add(tripId);
     btn.classList.add('active');
+    routeOutlines[tripId].addTo(map);
     routeLayers[tripId].addTo(map);
     pointLayers[tripId].forEach(m=>m.addTo(map));
   }
@@ -499,12 +513,15 @@ function renderDayState(){
   updateRouteToneByDay();
 }
 
+const LEVEL_WEIGHT = { tinggi: 14, sedang: 10, rendah: 6 };
+
 function updateRouteToneByDay(){
   const data = CATATAN_MACET_HARIAN.find(c => c.hari === activeDay);
   if(!data) return;
   const tone = LEVEL_ROUTE_COLOR[data.level];
-  Object.values(routeLayers).forEach(line=>{
-    line.setStyle({ color: tone });
+  const weight = LEVEL_WEIGHT[data.level];
+  Object.values(routeOutlines).forEach(outline=>{
+    outline.setStyle({ color: tone, weight: weight, opacity: 0.55 });
   });
 }
 
